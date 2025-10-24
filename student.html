@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D.PotD Student Portal</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #E3E3E3;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.locked {
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 2px solid #E3E3E3;
+        }
+
+        body.locked .container {
+            max-width: 100%;
+            height: 100vh;
+            border-radius: 0;
+            overflow-y: auto;
+            padding: 80px 40px 40px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #000;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #000;
+            font-weight: 600;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E3E3E3;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: #fff;
+            color: #000;
+            font-family: 'Courier New', monospace;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #EA5A2F;
+            box-shadow: 0 0 0 3px rgba(234, 90, 47, 0.1);
+        }
+
+        .btn {
+            background: #EA5A2F;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #d84a1f;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            background: #E3E3E3;
+            color: #666;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .question-section {
+            display: none;
+        }
+
+        .question-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #EA5A2F;
+            min-height: 200px;
+        }
+
+        .question-box h2 {
+            color: #000;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .question-box p {
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .latex-editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .latex-input-section, .latex-preview-section {
+            background: #fff;
+            border: 2px solid #E3E3E3;
+            border-radius: 8px;
+            padding: 15px;
+            height: 500px;
+            overflow-y: auto;
+        }
+
+        .latex-input-section h3, .latex-preview-section h3 {
+            color: #EA5A2F;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        #latexInput {
+            width: 100%;
+            height: calc(100% - 40px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: none;
+        }
+
+        #latexPreview {
+            min-height: calc(100% - 40px);
+            padding: 10px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-y: auto;
+        }
+
+        .timer {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+            z-index: 10000;
+            border: 2px solid #E3E3E3;
+            display: none;
+        }
+
+        .progress-indicator {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 16px;
+            font-weight: 600;
+            color: #EA5A2F;
+            z-index: 10000;
+            border: 2px solid #E3E3E3;
+            display: none;
+        }
+
+        .ai-helper {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 2px solid #E3E3E3;
+            z-index: 10001;
+            display: none;
+        }
+
+        .ai-helper.show {
+            display: block;
+        }
+
+        .ai-header {
+            background: #EA5A2F;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 25px;
+            height: 25px;
+        }
+
+        .ai-chat-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .ai-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 90%;
+        }
+
+        .ai-message.user {
+            background: #EA5A2F;
+            color: white;
+            margin-left: auto;
+        }
+
+        .ai-message.assistant {
+            background: white;
+            border: 1px solid #E3E3E3;
+        }
+
+        .ai-input-container {
+            padding: 15px;
+            border-top: 2px solid #E3E3E3;
+        }
+
+        .ai-input-container input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #E3E3E3;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .ai-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #EA5A2F;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            display: none;
+        }
+
+        .latex-help-btn {
+            position: fixed;
+            top: 20px;
+            right: 180px;
+            background: #4A90E2;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .latex-help-btn:hover {
+            background: #3A7BC8;
+        }
+
+        .latex-help-dropdown {
+            position: fixed;
+            top: 65px;
+            right: 180px;
+            width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 10001;
+            display: none;
+            padding: 20px;
+            border: 2px solid #4A90E2;
+        }
+
+        .latex-help-dropdown.show {
+            display: block;
+        }
+
+        .latex-help-dropdown h3 {
+            color: #4A90E2;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #E3E3E3;
+            padding-bottom: 10px;
+        }
+
+        .latex-help-section {
+            margin-bottom: 20px;
+        }
+
+        .latex-help-section h4 {
+            color: #000;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .latex-help-section code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #e83e8c;
+        }
+
+        .latex-help-section p {
+            font-size: 13px;
+            color: #666;
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .warning-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(234, 90, 47, 0.95);
+            z-index: 99999;
+            color: white;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .warning-overlay.show {
+            display: flex;
+        }
+
+        .warning-count {
+            font-size: 48px;
+            color: #000;
+            margin: 20px 0;
+        }
+
+        .loading-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-modal.show {
+            display: flex;
+        }
+        
+        .loading-content {
+            background: white;
+            padding: 40px 60px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #EA5A2F;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .day-indicator {
+            background: #EA5A2F;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 18px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .correct {
+            color: #28a745;
+        }
+
+        .incorrect {
+            color: #dc3545;
+        }
+
+        body.locked::after {
+            content: 'TEST IN PROGRESS - DO NOT LEAVE THIS PAGE';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #000;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 9999;
+            font-size: 14px;
+        }
+
+        @media (max-width: 1200px) {
+            .latex-editor-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-modal" id="loadingModal">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loadingText">Loading...</p>
+        </div>
+    </div>
+
+    <div class="warning-overlay" id="warningOverlay">
+        <p><strong>WARNING: YOU HAVE LEFT THE TEST PAGE!</strong></p>
+        <p style="font-size: 18px; margin: 20px 0;">Return to the test immediately!</p>
+        <p class="warning-count">Violations recorded: <span id="violationCount">0</span></p>
+        <button class="btn" onclick="returnToFullscreen()" style="max-width: 400px; padding: 20px 40px; font-size: 18px; margin-top: 20px; background: #fff; color: #dc3545; border: 3px solid #fff;">
+            Return to Test & Enter Fullscreen
+        </button>
+    </div>
+
+    <button class="ai-toggle-btn" id="aiToggleBtn" onclick="toggleAIHelper()">
+        LaTeX Helper
+    </button>
+
+    <button class="latex-help-btn" id="latexHelpBtn" onmouseenter="showLatexHelp()" onmouseleave="hideLatexHelp()">
+        ?
+    </button>
+
+    <div class="latex-help-dropdown" id="latexHelpDropdown" onmouseenter="showLatexHelp()" onmouseleave="hideLatexHelp()">
+        <h3>Basic LaTeX Syntax</h3>
+        
+        <div class="latex-help-section">
+            <h4>Inline Math</h4>
+            <p>Wrap math in single dollar signs: <code>$x^2 + y^2 = z^2$</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Display Math (Centered)</h4>
+            <p>Use double dollar signs:</p>
+            <p><code>$\frac{a}{b} = \frac{c}{d}$</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Fractions</h4>
+            <p><code>\frac{numerator}{denominator}</code></p>
+            <p>Example: <code>$\frac{1}{2}$</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Exponents & Subscripts</h4>
+            <p>Exponent: <code>x^2</code> or <code>x^{10}</code></p>
+            <p>Subscript: <code>x_1</code> or <code>x_{10}</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Square Roots</h4>
+            <p><code>\sqrt{x}</code> or <code>\sqrt[3]{x}</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Greek Letters</h4>
+            <p><code>\alpha</code>, <code>\beta</code>, <code>\gamma</code>, <code>\theta</code>, <code>\pi</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Common Symbols</h4>
+            <p>Summation: <code>\sum_{i=1}^{n}</code></p>
+            <p>Integral: <code>\int_0^1 f(x) dx</code></p>
+            <p>Less/Greater: <code>\leq</code>, <code>\geq</code></p>
+            <p>Infinity: <code>\infty</code></p>
+        </div>
+        
+        <div class="latex-help-section">
+            <h4>Parentheses (Auto-sizing)</h4>
+            <p><code>\left( \frac{a}{b} \right)</code></p>
+        </div>
+    </div>
+
+    <div class="ai-helper" id="aiHelper">
+        <div class="ai-header">
+            <span>LaTeX Helper</span>
+            <button class="ai-close" onclick="toggleAIHelper()">×</button>
+        </div>
+        <div class="ai-chat-container" id="aiChatContainer">
+            <div class="ai-message assistant">
+                <strong>LaTeX Helper:</strong> I can ONLY help with LaTeX syntax and formatting.
+                <br><br>
+                <strong style="color: #dc3545;">I CANNOT:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Solve math problems</li>
+                    <li>Provide answers or hints</li>
+                    <li>Explain math concepts</li>
+                    <li>Calculate anything</li>
+                </ul>
+                <strong style="color: #28a745;">I CAN help with:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>"How do I write a fraction?"</li>
+                    <li>"What's the syntax for square roots?"</li>
+                    <li>"How do I make subscripts?"</li>
+                    <li>"How do I write Greek letters?"</li>
+                </ul>
+            </div>
+        </div>
+        <div class="ai-input-container">
+            <input type="text" id="aiInput" placeholder="Ask about LaTeX syntax..." onkeypress="handleAIEnter(event)">
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>D.PotD Problems of the Day</h1>
+        <p class="subtitle">Student Portal</p>
+        
+        <div id="studentForm">
+            <div class="form-group">
+                <label>Full Name:</label>
+                <input type="text" id="studentName" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="studentEmail" required>
+                <span id="emailError" class="error-message"></span>
+            </div>
+            
+            <button class="btn" onclick="startTest()">Start Test</button>
+            <div id="startStatus" class="status"></div>
+        </div>
+        
+        <div id="questionSection" class="question-section">
+            <div class="timer" id="timer">Time Remaining: 2:00:00</div>
+            <div class="progress-indicator" id="progressIndicator">Question 1 of 3</div>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div class="day-indicator" id="dayIndicator">Day -</div>
+                <div style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <span style="margin-right: 15px;">2 hours total</span>
+                    <span style="margin-right: 15px;">3 questions</span>
+                    <span>Do not leave this page</span>
+                </div>
+            </div>
+
+            <div id="q1Page" style="display: none;">
+                <div class="question-box">
+                    <h2>Question 1</h2>
+                    <p id="q1Text"></p>
+                    <input type="text" id="q1Answer" placeholder="Your answer (numbers only)">
+                </div>
+                <button class="btn" onclick="nextQuestion(1)">Next Question →</button>
+                <div id="q1Status" class="status"></div>
+            </div>
+
+            <div id="q2Page" style="display: none;">
+                <div class="question-box">
+                    <h2>Question 2</h2>
+                    <p id="q2Text"></p>
+                    <input type="text" id="q2Answer" placeholder="Your answer (numbers only)">
+                </div>
+                <button class="btn" onclick="nextQuestion(2)">Next Question →</button>
+                <div id="q2Status" class="status"></div>
+            </div>
+
+            <div id="q3Page" style="display: none;">
+                <div class="question-box">
+                    <h2>Question 3 (Proof/Explanation)</h2>
+                    <p id="q3Text"></p>
+                </div>
+                
+                <div class="latex-editor-container">
+                    <div class="latex-input-section">
+                        <h3>LaTeX Code</h3>
+                        <textarea id="latexInput" placeholder="Write your proof using LaTeX here..."></textarea>
+                    </div>
+                    <div class="latex-preview-section">
+                        <h3>Live Preview</h3>
+                        <div id="latexPreview">Your formatted proof will appear here...</div>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="submitTest()" style="margin-top: 20px;">Submit Test</button>
+                <div id="q3Status" class="status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRPyEM0A2oP_zU9GTq_tPintK4rU1e16IvGLgCV-P1G4-dsghsw7B_kkgAuPII56X0/exec';
+        const GEMINI_API_KEY = 'AIzaSyAG0HmsIkxuESxsq0sYNPRANTfqHdIk6Tk';
+        
+        let startTime, timerInterval, questionsData;
+        let q1StartTime, q2StartTime, q3StartTime;
+        let q1EndTime, q2EndTime, q3EndTime;
+        let exitCount = 0, exitLogs = [];
+        let testActive = false, currentDay = null, currentQuestion = 0;
+        const TEST_DURATION = 120 * 60 * 1000;
+
+        let latexUpdateTimer = null;
+        
+        function updateLatexPreview() {
+            if (latexUpdateTimer) clearTimeout(latexUpdateTimer);
+            
+            latexUpdateTimer = setTimeout(() => {
+                const input = document.getElementById('latexInput').value;
+                const preview = document.getElementById('latexPreview');
+                
+                if (!input.trim()) {
+                    preview.innerHTML = '<p style="color: #999;">Your formatted proof will appear here...</p>';
+                    return;
+                }
+                
+                let content = input;
+                content = content.replace(/\\documentclass\{[^}]+\}/g, '');
+                content = content.replace(/\\usepackage\{[^}]+\}/g, '');
+                content = content.replace(/\\title\{[^}]*\}/g, '');
+                content = content.replace(/\\author\{[^}]*\}/g, '');
+                content = content.replace(/\\date\{[^}]*\}/g, '');
+                content = content.replace(/\\maketitle/g, '');
+                
+                const docMatch = content.match(/\\begin\{document\}([\s\S]*)\\end\{document\}/);
+                if (docMatch) content = docMatch[1].trim();
+                
+                preview.innerHTML = content || '<p style="color: #999;">Write your proof...</p>';
+                
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    MathJax.typesetClear([preview]);
+                    MathJax.typesetPromise([preview]).catch((err) => {
+                        console.error('MathJax error:', err);
+                        preview.innerHTML += '<p style="color: #dc3545; font-size: 12px; margin-top: 10px;"><strong>⚠️ LaTeX Error:</strong> Check your syntax</p>';
+                    });
+                }
+            }, 500);
+        }
+
+        function toggleAIHelper() {
+            document.getElementById('aiHelper').classList.toggle('show');
+        }
+
+        let latexHelpTimeout;
+        
+        function showLatexHelp() {
+            clearTimeout(latexHelpTimeout);
+            document.getElementById('latexHelpDropdown').classList.add('show');
+        }
+        
+        function hideLatexHelp() {
+            latexHelpTimeout = setTimeout(() => {
+                document.getElementById('latexHelpDropdown').classList.remove('show');
+            }, 300);
+        }
+
+        function handleAIEnter(event) {
+            if (event.key === 'Enter') sendAIMessage();
+        }
+
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            addAIMessage(message, 'user');
+            input.value = '';
+            
+            // Check for actual problem-solving attempts (not syntax questions)
+            const lowerMessage = message.toLowerCase();
+            
+            // These are RED FLAGS for problem solving
+            const problemSolvingPhrases = [
+                'solve', 'calculate', 'compute', 'what is', 'how much is', 
+                'find the answer', 'find the solution', 'the answer to',
+                'result of', 'evaluate', 'simplify'
+            ];
+            
+            // These are OK - they're about LaTeX syntax
+            const syntaxPhrases = [
+                'how do i write', 'how to write', 'syntax for', 'latex code',
+                'in latex', 'using latex', 'format', 'display'
+            ];
+            
+            // Check if it's a syntax question
+            const isSyntaxQuestion = syntaxPhrases.some(phrase => lowerMessage.includes(phrase));
+            
+            // Check if it's asking to solve something
+            const isProblemSolving = problemSolvingPhrases.some(phrase => lowerMessage.includes(phrase));
+            
+            // Block if clearly problem-solving AND not a syntax question
+            if (isProblemSolving && !isSyntaxQuestion) {
+                addAIMessage('I cannot help solve math problems or provide answers. I can ONLY help with LaTeX syntax questions like:\n\n"How do I write a fraction?"\n"How do I make superscripts?"\n"How do I write Greek letters?"\n"What\'s the syntax for square roots?"', 'assistant');
+                return;
+            }
+            
+            const systemPrompt = `You are a STRICT LaTeX syntax helper. You can ONLY answer questions about how to write LaTeX code.
+
+ALLOWED:
+- Explain LaTeX syntax and commands (e.g., "use \\frac{a}{b} for fractions")
+- Show how to format mathematical expressions in LaTeX
+- Explain LaTeX symbols and structures
+
+FORBIDDEN:
+- Solve ANY math problems
+- Provide numerical answers to calculations
+- Give hints about problem solutions
+- Explain mathematical concepts or theory
+
+If asked to solve something, respond: "I can only help with LaTeX syntax, not solving problems."
+
+Keep responses brief and focused on LaTeX code syntax only.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{parts: [{text: `${systemPrompt}\n\nUser: ${message}`}]}],
+                        generationConfig: {temperature: 0.4, maxOutputTokens: 200}
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                
+                const data = await response.json();
+                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, no response';
+                
+                addAIMessage(aiResponse, 'assistant');
+            } catch (error) {
+                addAIMessage(`Error: ${error.message}`, 'assistant');
+            }
+        }
+
+        function addAIMessage(message, type) {
+            const container = document.getElementById('aiChatContainer');
+            const div = document.createElement('div');
+            div.className = `ai-message ${type}`;
+            
+            if (type === 'assistant') {
+                let processed = message
+                    .replace(/```([^`]+)```/g, '<pre style="background:#2d2d2d;color:#f8f8f2;padding:10px;border-radius:4px;overflow-x:auto;margin:10px 0">$1</pre>')
+                    .replace(/`([^`]+)`/g, '<code style="background:#f4f4f4;padding:2px 6px;border-radius:3px;color:#e83e8c">$1</code>');
+                div.innerHTML = `<strong>LaTeX Helper:</strong> ${processed}`;
+                container.appendChild(div);
+                if (window.MathJax) MathJax.typesetPromise([div]).catch(e => console.log(e));
+            } else {
+                div.textContent = message;
+                container.appendChild(div);
+            }
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = 'status ' + type;
+            el.style.display = 'block';
+        }
+
+        function showLoading(message) {
+            document.getElementById('loadingText').textContent = message;
+            document.getElementById('loadingModal').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.remove('show');
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function cleanAnswer(answer) {
+            return answer.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+        }
+
+        function recordViolation(type) {
+            if (!testActive) return;
+            exitCount++;
+            exitLogs.push({time: new Date().toISOString(), type});
+            document.getElementById('violationCount').textContent = exitCount;
+            document.getElementById('warningOverlay').classList.add('show');
+        }
+
+        function hideWarning() {
+            document.getElementById('warningOverlay').classList.remove('show');
+        }
+
+        function returnToFullscreen() {
+            document.documentElement.requestFullscreen().then(() => hideWarning()).catch(() => alert('Please allow fullscreen'));
+        }
+
+        function monitorFullscreen() {
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && testActive) recordViolation('exited_fullscreen');
+            });
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && testActive) recordViolation('tab_hidden');
+            });
+        }
+
+        async function getCurrentDay() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getSchedule`);
+                const schedule = await response.json();
+                const now = new Date();
+                
+                for (let i = 1; i <= 5; i++) {
+                    const dayStart = schedule[`day${i}`] ? new Date(schedule[`day${i}`]) : null;
+                    const nextDay = schedule[`day${i + 1}`] ? new Date(schedule[`day${i + 1}`]) : null;
+                    
+                    if (dayStart && now >= dayStart && (!nextDay || now < nextDay)) {
+                        return i;
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('Error getting day:', error);
+                return null;
+            }
+        }
+
+        function updateTimer() {
+            if (!startTime) return;
+            
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, TEST_DURATION - elapsed);
+            
+            const hours = Math.floor(remaining / 3600000);
+            const minutes = Math.floor((remaining % 3600000) / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            
+            const timer = document.getElementById('timer');
+            timer.textContent = `Time Remaining: ${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            timer.style.display = 'block';
+            timer.style.color = remaining < 600000 ? '#ff6b6b' : '#000';
+            
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                submitTest(true);
+            }
+        }
+
+        function showQuestion(num) {
+            ['q1Page', 'q2Page', 'q3Page'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById(`q${num}Page`).style.display = 'block';
+            document.getElementById('progressIndicator').textContent = `Question ${num} of 3`;
+            document.getElementById('progressIndicator').style.display = 'block';
+            
+            const aiBtn = document.getElementById('aiToggleBtn');
+            const helpBtn = document.getElementById('latexHelpBtn');
+            
+            if (num === 3) {
+                aiBtn.style.display = 'block';
+                helpBtn.style.display = 'flex';
+            } else {
+                aiBtn.style.display = 'none';
+                helpBtn.style.display = 'none';
+            }
+            
+            currentQuestion = num;
+        }
+
+        function nextQuestion(from) {
+            const answer = document.getElementById(`q${from}Answer`).value.trim();
+            
+            if (!answer) {
+                showStatus(`q${from}Status`, 'Please provide an answer', 'error');
+                return;
+            }
+            
+            if (from === 1) {
+                q1EndTime = Date.now();
+                q2StartTime = Date.now();
+                showQuestion(2);
+            } else if (from === 2) {
+                q2EndTime = Date.now();
+                q3StartTime = Date.now();
+                showQuestion(3);
+            }
+        }
+
+        async function startTest() {
+            const name = document.getElementById('studentName').value.trim();
+            const email = document.getElementById('studentEmail').value.trim();
+            const emailError = document.getElementById('emailError');
+            
+            emailError.textContent = '';
+            
+            if (!name || !email) {
+                showStatus('startStatus', 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                emailError.textContent = 'Invalid email format';
+                showStatus('startStatus', 'Invalid email', 'error');
+                return;
+            }
+            
+            showLoading('Determining current day...');
+            currentDay = await getCurrentDay();
+            
+            if (!currentDay) {
+                hideLoading();
+                showStatus('startStatus', 'No test is currently available', 'error');
+                return;
+            }
+            
+            showLoading(`Loading Day ${currentDay} questions...`);
+            
+            try {
+                const checkResponse = await fetch(`${SCRIPT_URL}?action=checkSubmission&email=${encodeURIComponent(email)}&day=${currentDay}`);
+                const checkData = await checkResponse.json();
+                
+                if (checkData.exists) {
+                    hideLoading();
+                    showStatus('startStatus', 'You have already submitted this test!', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${SCRIPT_URL}?action=getQuestions&day=${currentDay}`);
+                questionsData = await response.json();
+                
+                if (questionsData.error) {
+                    hideLoading();
+                    showStatus('startStatus', 'Error: ' + questionsData.error, 'error');
+                    return;
+                }
+                
+                document.getElementById('q1Text').textContent = questionsData.q1_text || 'Question 1 text not available';
+                document.getElementById('q2Text').textContent = questionsData.q2_text || 'Question 2 text not available';
+                document.getElementById('q3Text').textContent = questionsData.q3_text || 'Question 3 text not available';
+                document.getElementById('dayIndicator').textContent = `Day ${currentDay}`;
+                
+                hideLoading();
+                
+                // Remove the original start button before adding the fullscreen button
+                const originalStartBtn = document.querySelector('#studentForm .btn');
+                if (originalStartBtn) {
+                    originalStartBtn.style.display = 'none';
+                }
+                
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'btn';
+                confirmBtn.style.marginTop = '20px';
+                confirmBtn.textContent = 'Enter Fullscreen & Begin Test';
+                confirmBtn.onclick = async function() {
+                    try {
+                        await document.documentElement.requestFullscreen();
+                        confirmBtn.remove();
+                        
+                        document.getElementById('studentForm').style.display = 'none';
+                        document.getElementById('questionSection').style.display = 'block';
+                        
+                        document.body.classList.add('locked');
+                        testActive = true;
+                        monitorFullscreen();
+                        
+                        startTime = Date.now();
+                        q1StartTime = Date.now();
+                        timerInterval = setInterval(updateTimer, 1000);
+                        updateTimer();
+                        showQuestion(1);
+                    } catch (err) {
+                        alert('Fullscreen mode is required. Please allow fullscreen and try again.');
+                    }
+                };
+                
+                const statusEl = document.getElementById('startStatus');
+                statusEl.textContent = 'Questions loaded! Click below to enter fullscreen mode and begin.';
+                statusEl.className = 'status success';
+                statusEl.style.display = 'block';
+                statusEl.parentElement.appendChild(confirmBtn);
+                
+            } catch (error) {
+                hideLoading();
+                showStatus('startStatus', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function submitTest(isForced = false) {
+            if (!testActive && !isForced) return;
+            
+            const name = document.getElementById('studentName').value.trim();
+            const email = document.getElementById('studentEmail').value.trim();
+            const q1Answer = cleanAnswer(document.getElementById('q1Answer').value.trim());
+            const q2Answer = cleanAnswer(document.getElementById('q2Answer').value.trim());
+            const q3Answer = document.getElementById('latexInput').value.trim();
+            
+            if (!isForced && (!q1Answer || !q2Answer || !q3Answer)) {
+                showStatus('q3Status', 'Please answer all questions', 'error');
+                return;
+            }
+            
+            testActive = false;
+            clearInterval(timerInterval);
+            
+            const endTime = Date.now();
+            q3EndTime = endTime;
+            
+            const q1Time = q1EndTime ? Math.floor((q1EndTime - q1StartTime) / 1000) : 0;
+            const q2Time = q2EndTime && q2StartTime ? Math.floor((q2EndTime - q2StartTime) / 1000) : 0;
+            const q3Time = q3StartTime ? Math.floor((q3EndTime - q3StartTime) / 1000) : 0;
+            const totalTime = Math.floor((endTime - startTime) / 1000);
+            
+            const q1Correct = q1Answer === cleanAnswer(questionsData.q1_answer);
+            const q2Correct = q2Answer === cleanAnswer(questionsData.q2_answer);
+            
+            const submission = {
+                studentName: name,
+                studentEmail: email,
+                day: currentDay,
+                q1_answer: q1Answer,
+                q2_answer: q2Answer,
+                q3_answer: q3Answer,
+                q1_correct: q1Correct,
+                q2_correct: q2Correct,
+                q1_time: q1Time,
+                q2_time: q2Time,
+                q3_time: q3Time,
+                totalTime: totalTime,
+                exitCount: exitCount,
+                exitLogs: JSON.stringify(exitLogs),
+                workFileURL: ''
+            };
+            
+            showLoading(isForced ? 'Auto-submitting...' : 'Submitting...');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'text/plain'},
+                    body: JSON.stringify(submission)
+                });
+                
+                const result = JSON.parse(await response.text());
+                hideLoading();
+                
+                if (result.success) {
+                    testActive = false;
+                    document.body.classList.remove('locked');
+                    hideWarning();
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    
+                    document.getElementById('questionSection').style.display = 'none';
+                    
+                    document.querySelector('.container').innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <h1 style="color: #28a745; margin-bottom: 20px;">Test Submitted Successfully!</h1>
+                        <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
+                            Your score will be emailed to you soon.
+                        </p>
+                        <div style="background: #f8f9fa; padding: 30px; border-radius: 8px; border-left: 4px solid #EA5A2F; max-width: 500px; margin: 0 auto;">
+                            <h2 style="margin-bottom: 20px; color: #000;">Your Results</h2>
+                            
+                            <div style="text-align: left; margin-bottom: 15px;">
+                                <strong>Question 1:</strong>
+                                <span class="${q1Correct ? 'correct' : 'incorrect'}" style="font-size: 18px; margin-left: 10px;">
+                                    ${q1Correct ? 'Correct' : 'Incorrect'}
+                                </span>
+                                <div style="color: #666; font-size: 14px; margin-top: 5px;">
+                                    Your answer: ${q1Answer} | Time: ${Math.floor(q1Time / 60)}m ${q1Time % 60}s
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: left; margin-bottom: 15px;">
+                                <strong>Question 2:</strong>
+                                <span class="${q2Correct ? 'correct' : 'incorrect'}" style="font-size: 18px; margin-left: 10px;">
+                                    ${q2Correct ? 'Correct' : 'Incorrect'}
+                                </span>
+                                <div style="color: #666; font-size: 14px; margin-top: 5px;">
+                                    Your answer: ${q2Answer} | Time: ${Math.floor(q2Time / 60)}m ${q2Time % 60}s
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: left;">
+                                <strong>Question 3:</strong>
+                                <span style="color: #666; font-size: 14px; margin-left: 10px;">Will be graded manually</span>
+                                <div style="color: #666; font-size: 14px; margin-top: 5px;">
+                                    Time: ${Math.floor(q3Time / 60)}m ${q3Time % 60}s
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #E3E3E3;">
+                                <strong>Total Time:</strong>
+                                <span style="color: #000; font-size: 18px; margin-left: 10px;">
+                                    ${Math.floor(totalTime / 60)}m ${totalTime % 60}s
+                                </span>
+                            </div>
+                            
+                            ${exitCount > 0 ? `
+                            <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 6px;">
+                                <strong style="color: #856404;">Violations: ${exitCount}</strong>
+                            </div>` : ''}
+                        </div>
+                        
+                        <button class="btn" onclick="window.location.reload()" style="max-width: 300px; margin: 30px auto 0;">
+                            Back to Home
+                        </button>
+                    </div>`;
+                } else {
+                    showStatus('q3Status', 'Error: ' + (result.error || 'Unknown'), 'error');
+                    testActive = true;
+                }
+            } catch (error) {
+                hideLoading();
+                showStatus('q3Status', 'Error: ' + error.message, 'error');
+                testActive = true;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            ['q1Answer', 'q2Answer'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', (e) => {
+                        const cleaned = cleanAnswer(e.target.value);
+                        if (e.target.value !== cleaned) e.target.value = cleaned;
+                    });
+                }
+            });
+            
+            const latexInput = document.getElementById('latexInput');
+            if (latexInput) {
+                latexInput.addEventListener('input', updateLatexPreview);
+                latexInput.value = `\\documentclass{article}
+\\usepackage{amsmath}
+
+\\begin{document}
+
+Write your proof here. 
+
+For inline math, use: $x^2 + y^2 = z^2$
+
+For display math, use double dollar signs:
+$
+\\frac{a}{b} = \\frac{c}{d}
+$
+
+Common symbols:
+- Fractions: $\\frac{numerator}{denominator}$
+- Exponents: $x^2$ or $x^{10}$
+- Subscripts: $x_1$ or $x_{10}$
+- Square root: $\\sqrt{x}$ or $\\sqrt[3]{x}$
+- Summation: $\\sum_{i=1}^{n} i$
+- Integral: $\\int_0^1 f(x) dx$
+
+\\end{document}`;
+                updateLatexPreview();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (testActive) {
+                const blocked = [
+                    e.keyCode === 123,
+                    (e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74),
+                    (e.ctrlKey || e.metaKey) && e.keyCode === 85,
+                    e.keyCode === 27
+                ];
+                
+                if (blocked.some(x => x)) {
+                    e.preventDefault();
+                    recordViolation('keyboard_blocked');
+                    return false;
+                }
+            }
+        });
+
+        document.addEventListener('contextmenu', (e) => {
+            if (testActive) {
+                e.preventDefault();
+                recordViolation('right_click');
+            }
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (testActive) {
+                e.preventDefault();
+                e.returnValue = '';
+                recordViolation('attempted_close');
+                return '';
+            }
+        });
+    </script>
+</body>
+</html>
