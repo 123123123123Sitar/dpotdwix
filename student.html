@@ -1118,8 +1118,14 @@ Keep responses brief and focused on LaTeX code syntax only.`;
             showLoading(`Loading Day ${currentDay} questions...`);
             
             try {
-                const checkResponse = await fetch(`${SCRIPT_URL}?action=checkSubmission&email=${encodeURIComponent(email)}&day=${currentDay}`);
+                // Check if already submitted - pass BOTH email and wixMemberId
+                const checkUrl = `${SCRIPT_URL}?action=checkSubmission&email=${encodeURIComponent(email)}&day=${currentDay}${wixMemberId ? '&wixMemberId=' + encodeURIComponent(wixMemberId) : ''}`;
+                console.log('Checking submission with URL:', checkUrl);
+                
+                const checkResponse = await fetch(checkUrl);
                 const checkData = await checkResponse.json();
+                
+                console.log('Check submission response:', checkData);
                 
                 if (checkData.exists) {
                     hideLoading();
