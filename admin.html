@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D.PotD Admin Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Login Screen Styles */
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-box h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .login-box p {
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .login-form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .login-form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .login-form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-error {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Admin Panel - Hidden by default */
+        #adminPanel {
+            display: none;
+        }
+
+        .submission-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .submission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .submission-header h3 {
+            margin: 0;
+            color: #212529;
+        }
+        
+        .submission-details {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .detail-item {
+            padding: 8px 0;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 8px;
+        }
+        
+        .correct {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .incorrect {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .violation-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+        }
+        
+        .violation-details ul {
+            margin: 5px 0 0 20px;
+            padding: 0;
+        }
+        
+        .violation-details li {
+            color: #856404;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>🔒 Admin Login</h1>
+            <p>Enter password to access the admin portal</p>
+            <div id="loginError" class="login-error"></div>
+            <div class="login-form-group">
+                <label for="passwordInput">Password</label>
+                <input type="password" id="passwordInput" onkeypress="handlePasswordKeyPress(event)" placeholder="Enter admin password" autocomplete="off">
+            </div>
+            <button class="login-btn" onclick="checkPassword()">Login</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel">
+        <div class="container">
+            <h1>D.PotD Admin Portal</h1>
+            <p class="subtitle">Manage Questions, Schedule & View Submissions</p>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('questions')">Questions</button>
+                <button class="tab" onclick="switchTab('schedule')">Schedule</button>
+                <button class="tab" onclick="switchTab('settings')">Settings</button>
+                <button class="tab" onclick="switchTab('submissions')">Submissions</button>
+            </div>
+            
+            <!-- Questions Tab -->
+            <div id="questions" class="tab-content active">
+                <div class="form-group">
+                    <label>Select Day:</label>
+                    <select id="questionDay" onchange="loadQuestions()">
+                        <option value="1">Day 1</option>
+                        <option value="2">Day 2</option>
+                        <option value="3">Day 3</option>
+                        <option value="4">Day 4</option>
+                        <option value="5">Day 5</option>
+                    </select>
+                </div>
+                
+                <div class="question-group">
+                    <h3>Question 1 (Auto-Graded)</h3>
+                    <div class="form-group">
+                        <label>Question Text:</label>
+                        <textarea id="q1Text" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Answer (numbers only):</label>
+                        <input type="text" id="q1Answer" placeholder="e.g., 42 or -15">
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <h3>Question 2 (Auto-Graded)</h3>
+                    <div class="form-group">
+                        <label>Question Text:</label>
+                        <textarea id="q2Text" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Answer (numbers only):</label>
+                        <input type="text" id="q2Answer" placeholder="e.g., 42 or -15">
+                    </div>
+                </div>
+                
+                <div class="question-group">
+                    <h3>Question 3 (Manually Graded - Proof/Explanation)</h3>
+                    <div class="form-group">
+                        <label>Question Text:</label>
+                        <textarea id="q3Text" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Sample Answer/Rubric:</label>
+                        <textarea id="q3Answer" rows="3"></textarea>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="saveQuestions()">Save Questions</button>
+                <div id="questionStatus" class="status"></div>
+            </div>
+            
+            <!-- Schedule Tab -->
+            <div id="schedule" class="tab-content">
+                <p style="color: #666; margin-bottom: 20px;">Set when each day's test becomes available. Students will automatically see the correct day based on the current date/time.</p>
+                
+                <div class="form-group">
+                    <label>Day 1 Opens:</label>
+                    <input type="datetime-local" id="day1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Day 2 Opens:</label>
+                    <input type="datetime-local" id="day2">
+                </div>
+                
+                <div class="form-group">
+                    <label>Day 3 Opens:</label>
+                    <input type="datetime-local" id="day3">
+                </div>
+                
+                <div class="form-group">
+                    <label>Day 4 Opens:</label>
+                    <input type="datetime-local" id="day4">
+                </div>
+                
+                <div class="form-group">
+                    <label>Day 5 Opens:</label>
+                    <input type="datetime-local" id="day5">
+                </div>
+                
+                <button class="btn" onclick="saveSchedule()">Save Schedule</button>
+                <div id="scheduleStatus" class="status"></div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="form-group">
+                    <label>Admin Email (for notifications):</label>
+                    <input type="email" id="adminEmail">
+                </div>
+                
+                <div class="form-group">
+                    <label>Test Duration (minutes):</label>
+                    <input type="number" id="testDuration" value="120">
+                </div>
+                
+                <div class="form-group">
+                    <label>Upload Time After Test (minutes):</label>
+                    <input type="number" id="uploadTime" value="30">
+                </div>
+                
+                <button class="btn" onclick="saveSettings()">Save Settings</button>
+                <div id="settingsStatus" class="status"></div>
+            </div>
+            
+            <!-- Submissions Tab -->
+            <div id="submissions" class="tab-content">
+                <div class="btn-group">
+                    <button class="btn" onclick="loadSubmissions()">Refresh Submissions</button>
+                    <button class="btn" onclick="exportToCSV()" style="background: #28a745;">Export to CSV</button>
+                </div>
+                <div id="submissionsContainer"></div>
+                <div id="submissionsStatus" class="status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="admin.js"></script>
+</body>
+</html>
