@@ -59,6 +59,28 @@
             margin: 0;
         }
 
+        .login-banner {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-banner::before {
+            content: '✓';
+            font-size: 24px;
+            font-weight: bold;
+        }
+
         h1 {
             color: #000;
             margin-bottom: 10px;
@@ -95,6 +117,11 @@
             background: #fff;
             color: #000;
             font-family: 'Courier New', monospace;
+        }
+
+        input:read-only {
+            background: #f8f9fa;
+            cursor: not-allowed;
         }
 
         input:focus, textarea:focus {
@@ -576,7 +603,7 @@
         <div class="latex-help-section">
             <h4>Display Math (Centered)</h4>
             <p>Use double dollar signs:</p>
-            <p><code>$\frac{a}{b} = \frac{c}{d}$</code></p>
+            <p><code>$$\frac{a}{b} = \frac{c}{d}$$</code></p>
         </div>
         
         <div class="latex-help-section">
@@ -730,7 +757,50 @@
         let q1EndTime, q2EndTime, q3EndTime;
         let exitCount = 0, exitLogs = [];
         let testActive = false, currentDay = null, currentQuestion = 0;
+        let wixMemberId = null; // Store Wix member ID
         const TEST_DURATION = 120 * 60 * 1000;
+
+        // ============================================
+        // AUTO-LOGIN FROM WIX
+        // ============================================
+
+        function getUrlParameters() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                name: params.get('name'),
+                email: params.get('email'),
+                memberId: params.get('memberId')
+            };
+        }
+
+        function autoFillFromWix() {
+            const params = getUrlParameters();
+            
+            if (params.name && params.email) {
+                // Auto-fill the form
+                document.getElementById('studentName').value = decodeURIComponent(params.name);
+                document.getElementById('studentEmail').value = decodeURIComponent(params.email);
+                
+                // Make fields read-only
+                document.getElementById('studentName').readOnly = true;
+                document.getElementById('studentEmail').readOnly = true;
+                
+                // Store member ID
+                wixMemberId = params.memberId;
+                
+                // Add login banner
+                const container = document.querySelector('.container');
+                const loginBanner = document.createElement('div');
+                loginBanner.className = 'login-banner';
+                loginBanner.innerHTML = `Logged in as ${decodeURIComponent(params.name)}`;
+                
+                // Insert before the h1
+                const h1 = container.querySelector('h1');
+                container.insertBefore(loginBanner, h1);
+                
+                console.log('✓ Auto-filled from Wix login:', params);
+            }
+        }
 
         let latexUpdateTimer = null;
         
@@ -798,29 +868,22 @@
             addAIMessage(message, 'user');
             input.value = '';
             
-            // Check for actual problem-solving attempts (not syntax questions)
             const lowerMessage = message.toLowerCase();
             
-            // These are RED FLAGS for problem solving
             const problemSolvingPhrases = [
                 'solve', 'calculate', 'compute', 'what is', 'how much is', 
                 'find the answer', 'find the solution', 'the answer to',
                 'result of', 'evaluate', 'simplify'
             ];
             
-            // These are OK - they're about LaTeX syntax
             const syntaxPhrases = [
                 'how do i write', 'how to write', 'syntax for', 'latex code',
                 'in latex', 'using latex', 'format', 'display'
             ];
             
-            // Check if it's a syntax question
             const isSyntaxQuestion = syntaxPhrases.some(phrase => lowerMessage.includes(phrase));
-            
-            // Check if it's asking to solve something
             const isProblemSolving = problemSolvingPhrases.some(phrase => lowerMessage.includes(phrase));
             
-            // Block if clearly problem-solving AND not a syntax question
             if (isProblemSolving && !isSyntaxQuestion) {
                 addAIMessage('I cannot help solve math problems or provide answers. I can ONLY help with LaTeX syntax questions like:\n\n"How do I write a fraction?"\n"How do I make superscripts?"\n"How do I write Greek letters?"\n"What\'s the syntax for square roots?"', 'assistant');
                 return;
@@ -1069,7 +1132,6 @@ Keep responses brief and focused on LaTeX code syntax only.`;
                 
                 hideLoading();
                 
-                // Remove the original start button before adding the fullscreen button
                 const originalStartBtn = document.querySelector('#studentForm .btn');
                 if (originalStartBtn) {
                     originalStartBtn.style.display = 'none';
@@ -1144,6 +1206,7 @@ Keep responses brief and focused on LaTeX code syntax only.`;
             const submission = {
                 studentName: name,
                 studentEmail: email,
+                wixMemberId: wixMemberId || '',
                 day: currentDay,
                 q1_answer: q1Answer,
                 q2_answer: q2Answer,
@@ -1245,6 +1308,9 @@ Keep responses brief and focused on LaTeX code syntax only.`;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto-fill from Wix on page load
+            autoFillFromWix();
+            
             ['q1Answer', 'q2Answer'].forEach(id => {
                 const input = document.getElementById(id);
                 if (input) {
